@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: ecommerce-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-ecommerce_db}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Load initial data
+      - ./sample_data.sql:/docker-entrypoint-initdb.d/01-sample_data.sql:ro
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-ecommerce_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Spring Boot Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-backend
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-ecommerce_db}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      
+      # Server Configuration
+      SERVER_PORT: 8080
+      
+      # Application Configuration
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      
+      # JWT Configuration (optional - will use defaults if not set)
+      # JWT_SECRET: ${JWT_SECRET}
+      # JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+      
+      # JVM Configuration
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75.0
+        -XX:InitialRAMPercentage=50.0
+        -XX:+UseG1GC
+        -Xlog:gc*:file=/tmp/gc.log
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    volumes:
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Optional: Adminer - Database Management UI
+  adminer:
+    image: adminer:latest
+    container_name: ecommerce-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce-network
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+
+networks:
+  ecommerce-network:
+    driver: bridge
+    name: ecommerce-network
+
+volumes:
+  postgres_data:
+    name: ecommerce-postgres-data

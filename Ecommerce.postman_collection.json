@@ -1,0 +1,584 @@
+{
+	"info": {
+		"_postman_id": "ecommerce-api-collection",
+		"name": "Ecommerce API",
+		"description": "Collection for Ecommerce API endpoints including Authentication, Products, Cart, Orders and Admin operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"John Doe\",\n  \"phoneNumber\": \"0123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new customer account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"jwt_token\", jsonData.data.token);",
+									"        console.log(\"JWT Token saved:\", jsonData.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@ecommerce.com\",\n  \"password\": \"ChangeMe123!@#\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login and get JWT token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products?page=0&size=20&sortBy=createdAt",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Page number (default: 0)"
+								},
+								{
+									"key": "size",
+									"value": "20",
+									"description": "Page size (default: 20)"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt",
+									"description": "Sort field (default: createdAt)"
+								}
+							]
+						},
+						"description": "Get all products with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/filter?category=T_SHIRT&minPrice=100&maxPrice=500&page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "T_SHIRT",
+									"description": "Product category (T_SHIRT, HOODIE, JACKET, PANTS, ACCESSORIES)"
+								},
+								{
+									"key": "minPrice",
+									"value": "100",
+									"description": "Minimum price"
+								},
+								{
+									"key": "maxPrice",
+									"value": "500",
+									"description": "Maximum price"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Filter products by category and price range"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/{{product_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{product_id}}"
+							]
+						},
+						"description": "Get product details by ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cart",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cart"
+							]
+						},
+						"description": "Get current cart by session ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Add to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productVariantId\": \"{{variant_id}}\",\n  \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cart/items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"items"
+							]
+						},
+						"description": "Add product to cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cart/items/{{cart_item_id}}?quantity=2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"items",
+								"{{cart_item_id}}"
+							],
+							"query": [
+								{
+									"key": "quantity",
+									"value": "2",
+									"description": "New quantity"
+								}
+							]
+						},
+						"description": "Update cart item quantity"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove from Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cart/items/{{cart_item_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"items",
+								"{{cart_item_id}}"
+							]
+						},
+						"description": "Remove item from cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cart",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cart"
+							]
+						},
+						"description": "Clear all items from cart"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order (Checkout)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.trackingCode) {",
+									"        pm.environment.set(\"tracking_code\", jsonData.data.trackingCode);",
+									"        console.log(\"Tracking Code saved:\", jsonData.data.trackingCode);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerEmail\": \"customer@example.com\",\n  \"customerName\": \"John Doe\",\n  \"customerPhone\": \"0123456789\",\n  \"shippingAddress\": \"123 Main Street, Hanoi, Vietnam\",\n  \"paymentMethod\": \"COD\",\n  \"notes\": \"Please deliver between 9 AM - 5 PM\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						},
+						"description": "Create order from cart (checkout)"
+					},
+					"response": []
+				},
+				{
+					"name": "Track Order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/orders/track/{{tracking_code}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"track",
+								"{{tracking_code}}"
+							]
+						},
+						"description": "Track order by tracking code"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get All Orders",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/orders?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "PENDING",
+									"disabled": true,
+									"description": "Filter by status (PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED)"
+								}
+							]
+						},
+						"description": "Get all orders (Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders By Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/orders?status=PENDING&page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PENDING",
+									"description": "PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Filter orders by status (Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/orders/{{order_id}}/status?status=CONFIRMED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								"{{order_id}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "CONFIRMED",
+									"description": "PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED"
+								}
+							]
+						},
+						"description": "Update order status (Admin only)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
