@@ -21,7 +21,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"John Doe\",\n  \"phoneNumber\": \"0123456789\"\n}"
+							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"John Doe\",\n  \"phone\": \"0123456789\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/register",
@@ -131,7 +131,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/products/filter?category=T_SHIRT&minPrice=100&maxPrice=500&page=0&size=20",
+							"raw": "{{base_url}}/api/products/filter?categoryId={{category_id}}&minPrice=100&maxPrice=500&page=0&size=20",
 							"host": [
 								"{{base_url}}"
 							],
@@ -142,9 +142,9 @@
 							],
 							"query": [
 								{
-									"key": "category",
-									"value": "T_SHIRT",
-									"description": "Product category (T_SHIRT, HOODIE, JACKET, PANTS, ACCESSORIES)"
+									"key": "categoryId",
+									"value": "{{category_id}}",
+									"description": "Category UUID (get from database or product list)"
 								},
 								{
 									"key": "minPrice",
@@ -312,31 +312,6 @@
 							]
 						},
 						"description": "Remove item from cart"
-					},
-					"response": []
-				},
-				{
-					"name": "Clear Cart",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Session-Id",
-								"value": "{{session_id}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/cart",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"cart"
-							]
-						},
-						"description": "Clear all items from cart"
 					},
 					"response": []
 				}
@@ -513,7 +488,7 @@
 					"response": []
 				},
 				{
-					"name": "Update Order Status",
+					"name": "Update Order Status (Confirm Payment)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -525,10 +500,24 @@
 								}
 							]
 						},
-						"method": "PUT",
-						"header": [],
+						"method": "POST",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"CONFIRM\"\n}"
+						},
 						"url": {
-							"raw": "{{base_url}}/api/admin/orders/{{order_id}}/status?status=CONFIRMED",
+							"raw": "{{base_url}}/api/admin/orders/{{order_id}}/update-status",
 							"host": [
 								"{{base_url}}"
 							],
@@ -537,17 +526,56 @@
 								"admin",
 								"orders",
 								"{{order_id}}",
-								"status"
-							],
-							"query": [
+								"update-status"
+							]
+						},
+						"description": "Confirm payment for order (Admin only). Use action: CONFIRM or CANCEL"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Order",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "status",
-									"value": "CONFIRMED",
-									"description": "PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED"
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
 								}
 							]
 						},
-						"description": "Update order status (Admin only)"
+						"method": "POST",
+						"header": [
+							{
+								"key": "Session-Id",
+								"value": "{{session_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"CANCEL\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/orders/{{order_id}}/update-status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								"{{order_id}}",
+								"update-status"
+							]
+						},
+						"description": "Cancel order (Admin only)"
 					},
 					"response": []
 				}

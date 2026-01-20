@@ -18,26 +18,20 @@ Hệ thống E-commerce Backend (Headless) được xây dựng cho **Hung Hypeb
 
 ## ✨ Tính Năng Đã Hoàn Thành
 
-### 1. 🏷️ Catalog Management
-- ✅ Quản lý sản phẩm với nhiều biến thể (Size, Color, SKU)
-- ✅ Danh sách sản phẩm có phân trang và sắp xếp
-- ✅ Filter theo category và khoảng giá
-- ✅ Chi tiết sản phẩm
-
-### 2. 🛒 Shopping Cart
+### 1. 🛒 Shopping Cart
 - ✅ Thêm/xóa/cập nhật sản phẩm trong giỏ
 - ✅ Kiểm tra tồn kho real-time
 - ✅ Session-based cart (guest) và user-based cart
 - ✅ Tự động validate số lượng với kho
 
-### 3. 📦 Inventory Management (CRITICAL)
+### 2. 📦 Inventory Management (CRITICAL)
 - ✅ **Giữ hàng tự động 10-15 phút** khi checkout
 - ✅ **Pessimistic locking** để xử lý last item
 - ✅ **Auto-release expired reservations** (scheduled job mỗi 5 phút)
 - ✅ Atomic inventory operations
 - ✅ Reserved quantity tracking
 
-### 4. 💳 Checkout & Orders
+### 3. 💳 Checkout & Orders
 - ✅ Checkout với thông tin giao hàng đầy đủ
 - ✅ Hỗ trợ nhiều hình thức thanh toán:
   - COD (Cash on Delivery)
@@ -46,27 +40,27 @@ Hệ thống E-commerce Backend (Headless) được xây dựng cho **Hung Hypeb
 - ✅ Tự động tạo mã tracking
 - ✅ Order confirmation
 
-### 5. 📧 Email Notifications
+### 4. 📧 Email Notifications
 - ✅ Email xác nhận đơn hàng (HTML template đẹp)
 - ✅ Email cập nhật trạng thái đơn hàng
 - ✅ Email xác nhận thanh toán
 - ✅ Link tracking không cần đăng nhập
 - ✅ Responsive email design
 
-### 6. 🔍 Order Tracking
+### 5. 🔍 Order Tracking
 - ✅ Tracking bằng mã tracking code
 - ✅ **Không cần đăng nhập** để xem trạng thái
 - ✅ Timeline trạng thái đơn hàng
 - ✅ Chi tiết đơn hàng đầy đủ
 
-### 7. 👨‍💼 Admin Management
+### 6. 👨‍💼 Admin Management
 - ✅ Xem danh sách đơn hàng (phân trang)
 - ✅ Filter đơn hàng theo trạng thái
 - ✅ Cập nhật trạng thái đơn hàng
 - ✅ Authentication & Authorization
 - ✅ Auto-send email khi update status
 
-### 8. 🔐 Authentication & Security
+### 7. 🔐 Authentication & Security
 - ✅ JWT-based authentication
 - ✅ Role-based access control (ADMIN, CUSTOMER)
 - ✅ Secure password hashing
@@ -124,18 +118,18 @@ APP_BASE_URL=http://localhost:8080
 # Email (SMTP) - Xem hướng dẫn chi tiết ở EMAIL_SETUP_GUIDE.md
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
+MAIL_USERNAME=haiddhe17390@fpt.edu.vn
 MAIL_PASSWORD=your-app-password
-EMAIL_FROM=noreply@hunghypebeast.com
-EMAIL_FROM_NAME=Hung Hypebeast Store
+EMAIL_FROM=haiddhe17390@fpt.edu.vn
+EMAIL_FROM_NAME=Dao Duc Hai
 
 # JWT
 JWT_SECRET=your-secret-key-here
 JWT_EXPIRATION=86400000
 
 # Admin credentials
-ADMIN_PASSWORD=ChangeMe123!@#
-CUSTOMER_PASSWORD=ChangeMe456!@#
+ADMIN_PASSWORD=Admin@123
+CUSTOMER_PASSWORD=Customer@123
 ```
 
 **📧 Cấu hình Email:** Xem hướng dẫn chi tiết tại [EMAIL_SETUP_GUIDE.md](./EMAIL_SETUP_GUIDE.md)
@@ -174,13 +168,13 @@ docker run -p 8080:8080 --env-file .env ecommerce-backend
 ### Default Admin Account
 ```
 Email: admin@ecommerce.com
-Password: ChangeMe123!@# (hoặc giá trị trong ADMIN_PASSWORD)
+Password: Admin@123
 ```
 
 ### Default Customer Account
 ```
 Email: customer@ecommerce.com
-Password: ChangeMe456!@# (hoặc giá trị trong CUSTOMER_PASSWORD)
+Password: Customer@123
 ```
 
 ### Postman Collection
@@ -198,13 +192,6 @@ Import file `Ecommerce_API_Collection.postman_collection.json` vào Postman đ�
 POST /api/auth/login
 POST /api/auth/register
 POST /api/auth/refresh
-```
-
-#### Products (Public)
-```http
-GET    /api/products              # List products (paginated)
-GET    /api/products/{id}         # Get product detail
-GET    /api/products/filter       # Filter by category, price
 ```
 
 #### Cart (Session-based)
@@ -241,12 +228,23 @@ PUT    /api/admin/orders/{id}/status  # Update order status
 
 ```
 ┌─────────────┐
+│  Category   │
+├─────────────┤
+│ id          │
+│ name        │
+│ description │
+│ active      │
+└──────┬──────┘
+       │
+       │ 1:N
+       ▼
+┌─────────────┐
 │   Product   │
 ├─────────────┤
 │ id          │
 │ name        │
 │ description │
-│ category    │
+│ category_id │
 │ basePrice   │
 │ imageUrl    │
 │ active      │
@@ -352,8 +350,8 @@ Ecommerce_API.postman_environment.json
 ### Manual Test Flow
 
 1. **Register/Login** để lấy JWT token
-2. **Get Products** - xem danh sách sản phẩm
-3. **Add to Cart** - thêm sản phẩm vào giỏ (dùng Session-Id header)
+2. **Add to Cart** - thêm sản phẩm vào giỏ (dùng Session-Id header)
+3. **View Cart** - xem giỏ hàng hiện tại
 4. **Checkout** - tạo đơn hàng
 5. **Check Email** - nhận email xác nhận
 6. **Track Order** - dùng tracking code (không cần login)
@@ -424,7 +422,18 @@ InsufficientStockException: Insufficient stock
 
 ## 📝 API Usage Examples
 
-### 1. Create Order (Checkout)
+### 1. Add to Cart
+```bash
+curl -X POST http://localhost:8080/api/cart/items \
+  -H "Session-Id: test-session-123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "variantId": "variant-uuid-here",
+    "quantity": 2
+  }'
+```
+
+### 2. Create Order (Checkout)
 ```bash
 curl -X POST http://localhost:8080/api/orders \
   -H "Session-Id: test-session-123" \
@@ -439,12 +448,12 @@ curl -X POST http://localhost:8080/api/orders \
   }'
 ```
 
-### 2. Track Order (No Auth Required)
+### 3. Track Order (No Auth Required)
 ```bash
 curl http://localhost:8080/api/orders/track/{trackingCode}
 ```
 
-### 3. Admin Update Status
+### 4. Admin Update Status
 ```bash
 curl -X PUT http://localhost:8080/api/admin/orders/{orderId}/status?status=SHIPPING \
   -H "Authorization: Bearer {admin-jwt-token}"
@@ -480,8 +489,9 @@ src/main/resources/
 
 ## 🚧 Phase 2 Features (Upcoming)
 
+- [ ] Product Management API (create, update, delete products)
+- [ ] Category Management API
 - [ ] SePay webhook integration
-- [ ] Admin product management APIs
 - [ ] Product image upload
 - [ ] Advanced filtering (search, sort)
 - [ ] Order history for customers
@@ -495,14 +505,7 @@ src/main/resources/
 
 ## 👥 Contributors
 
-- **Developer:** [Your Name]
-- **Client:** Anh Hùng - Founder Hung Hypebeast
-
----
-
-## 📄 License
-
-This project is proprietary software for Hung Hypebeast Store.
+- **Developer:** Dao Duc Hai
 
 ---
 
@@ -518,10 +521,7 @@ This project is proprietary software for Hung Hypebeast Store.
 ## 📞 Support
 
 For issues and questions:
-- **Email:** support@hunghypebeast.com
-- **Documentation:** Check [EMAIL_SETUP_GUIDE.md](./EMAIL_SETUP_GUIDE.md) for email setup
+- **Email:** haiddhe17390@fpt.edu.vn
 - **API Docs:** http://localhost:8080/swagger-ui.html
 
 ---
-
-**Built with ❤️ for Hung Hypebeast Store**
