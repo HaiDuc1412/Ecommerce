@@ -103,33 +103,42 @@ CREATE DATABASE ecommerce_db;
 
 Copy file `.env.example` thành `.env` và cấu hình:
 
+```bash
+cp .env.example .env
+```
+
+Sau đó chỉnh sửa các thông tin trong file `.env`:
+
 ```env
-# Database
+# Database Configuration
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=ecommerce_db
 DB_USERNAME=postgres
 DB_PASSWORD=root
 
-# Server
+# Server Configuration
 SERVER_PORT=8080
 APP_BASE_URL=http://localhost:8080
 
-# Email (SMTP) - Xem hướng dẫn chi tiết ở EMAIL_SETUP_GUIDE.md
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=haiddhe17390@fpt.edu.vn
-MAIL_PASSWORD=your-app-password
-EMAIL_FROM=haiddhe17390@fpt.edu.vn
-EMAIL_FROM_NAME=Dao Duc Hai
-
-# JWT
-JWT_SECRET=your-secret-key-here
+# JWT Configuration
+# CRITICAL: Generate a strong secret key for production
+JWT_SECRET=CHANGE_THIS_TO_A_VERY_LONG_RANDOM_STRING_FOR_PRODUCTION_USE
 JWT_EXPIRATION=86400000
 
-# Admin credentials
-ADMIN_PASSWORD=Admin@123
-CUSTOMER_PASSWORD=Customer@123
+# Initial Admin & Customer Passwords
+# CRITICAL: Change these immediately after first login!
+ADMIN_PASSWORD=ChangeMe123!@#
+CUSTOMER_PASSWORD=ChangeMe456!@#
+
+# Email Configuration (SMTP)
+# For Gmail, enable "App Passwords" at: https://myaccount.google.com/apppasswords
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-16-character-app-password
+EMAIL_FROM=noreply@hunghypebeast.com
+EMAIL_FROM_NAME=Hung Hypebeast Store
 ```
 
 **📧 Cấu hình Email:** Xem hướng dẫn chi tiết tại [EMAIL_SETUP_GUIDE.md](./EMAIL_SETUP_GUIDE.md)
@@ -168,13 +177,13 @@ docker run -p 8080:8080 --env-file .env ecommerce-backend
 ### Default Admin Account
 ```
 Email: admin@ecommerce.com
-Password: Admin@123
+Password: ChangeMe123!@# (default từ .env, nên đổi sau khi login)
 ```
 
 ### Default Customer Account
 ```
 Email: customer@ecommerce.com
-Password: Customer@123
+Password: ChangeMe456!@# (default từ .env, nên đổi sau khi login)
 ```
 
 ### Postman Collection
@@ -189,33 +198,39 @@ Import file `Ecommerce_API_Collection.postman_collection.json` vào Postman đ�
 
 #### Authentication
 ```http
-POST /api/auth/login
-POST /api/auth/register
-POST /api/auth/refresh
+POST /api/auth/login       # Login with email/password
+POST /api/auth/register    # Register new customer account
+```
+
+#### Products (Public)
+```http
+GET    /api/products                  # Get all products (paginated)
+GET    /api/products/filter           # Filter products by category, price
+GET    /api/products/{id}             # Get product details
 ```
 
 #### Cart (Session-based)
 ```http
-GET    /api/cart                  # Get cart
-POST   /api/cart/items            # Add to cart
-PUT    /api/cart/items/{itemId}   # Update quantity
-DELETE /api/cart/items/{itemId}   # Remove item
-DELETE /api/cart                  # Clear cart
+GET    /api/cart                      # Get cart
+POST   /api/cart/items                # Add to cart
+PUT    /api/cart/items/{itemId}       # Update quantity
+DELETE /api/cart/items/{itemId}       # Remove item
 ```
 
 **Header Required:** `Session-Id: your-session-id`
 
 #### Orders
 ```http
-POST   /api/orders                    # Create order (checkout)
-GET    /api/orders/track/{trackingCode}  # Track order (no auth required)
+POST   /api/orders                         # Create order (checkout)
+GET    /api/orders/track/{trackingCode}    # Track order (no auth required)
 ```
 
 #### Admin Orders
 ```http
-GET    /api/admin/orders              # List all orders
-GET    /api/admin/orders?status=PAID  # Filter by status
-PUT    /api/admin/orders/{id}/status  # Update order status
+GET    /api/admin/orders                   # List all orders (with filters)
+GET    /api/admin/orders?status=PAID       # Filter by status
+GET    /api/admin/orders/{orderId}         # Get order details
+POST   /api/admin/orders/{orderId}/update-status  # Update order status
 ```
 
 **Authentication Required:** Bearer Token với role ADMIN
@@ -455,9 +470,16 @@ curl http://localhost:8080/api/orders/track/{trackingCode}
 
 ### 4. Admin Update Status
 ```bash
-curl -X PUT http://localhost:8080/api/admin/orders/{orderId}/status?status=SHIPPING \
-  -H "Authorization: Bearer {admin-jwt-token}"
+curl -X POST http://localhost:8080/api/admin/orders/{orderId}/update-status \
+  -H "Authorization: Bearer {admin-jwt-token}" \
+  -H "Session-Id: your-session-id" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "CONFIRM"
+  }'
 ```
+
+**Available actions:** `CONFIRM`, `CANCEL`, `SHIP`, `COMPLETE`
 
 ---
 
